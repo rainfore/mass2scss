@@ -1,0 +1,154 @@
+
+@import 'var';
+/**
+ * convert the @if statement to function
+ * beacuse call is a expression(means have value), sometimes can simplify our code
+ * __example__:
+ * $max: 100px;
+ * left: @include if( $max >= 100px, 300px, 600px);
+ * 
+ */
+@mixin if($test, $then, $alt){
+    @if len($arguments) < 2 { error('$if at leat 2 param')}
+    @if $test{
+       @return $then; 
+    }
+    @return $alt;
+}
+
+
+/**
+ * just like object in javascript, in mcss try use valueslist to fake a object
+ * and use $map to get the value
+ *
+ * __example__ :;
+ * $list: one 1, two  (2 3), three (3, 4, 5);
+ *          
+ * @include map($list, two) // => 2 3
+ * __warn__: if the list value use paren to wrap it force it as a expression;
+ */
+@mixin map($list, $key){
+  @if type-of($list) != 'valueslist'{
+    error('must valueslist')
+  }
+  @each $li,$i in $list{
+    @if $i == $key{
+      @return $li;
+    }
+  }
+  @return null;
+}
+
+
+/**
+ * prefixr a __declaration__ with $property and $value
+ * the default vendors is webkit moz ms o
+ */
+@mixin prefixr($property, $value , $vendors){
+    $vendors: webkit moz ms o;
+    @if $value == null {
+        @return {
+            @return @include prefixr($property, $arguments, $vendors);
+        }
+    }
+    @for $vendor of $vendors {
+        #{'-' + $vendor + '-' + $property} : $value;
+    }
+    #{$property} : $value;
+}
+
+// @debug @include if(1, 2, 3);
+// @debug @include map((
+//     one (1,2,3), 
+//     two (2,3,4), 
+//     three (3,4,5)
+//     ), three);
+
+// $border-radius: @include prefixr('border-radius', null);
+// $border-box: @include prefixr('border-box', null, hello);
+
+// body{
+//     @include border-radius(10px solid #fff, 20px solid);
+//     @include border-box($prefixr);
+// }
+
+
+$ops-map: 
+  left right,
+  right left,
+  top bottom,
+  bottom top;
+
+@mixin opposite($value){
+  @if is-list($value){
+    @return @include map($ops-map, nth($value, 0)) @include map($ops-map, index($value, 1) + 1);
+  }
+  @return @include map($ops-map, $value); 
+}
+
+@mixin side2corner($side){
+  @if $side == left{
+    @return top-left, bottom-left;
+  }
+  @if $side == right{
+    @return top-right, bottom-right;
+  }
+  @if $side == top{
+    @return top-left, top-right;
+  }
+  @if $side == bottom{
+    @return bottom-left, bottom-right;
+  }
+}
+
+@mixin prefix-transition($properties){
+  @if type-of($properties) == 'valueslist' {
+    
+  }
+}
+
+
+
+
+/**
+ * other private functions
+ */
+@mixin linear-pos($pos){
+  $type-pos: type-of($pos);
+  $corner-or-side: null;
+  @if $type-pos == 'values' {
+    $nth0: nth($pos, 0 + 1);
+    @if $nth0 == to { //spec version means end position
+        $corner-or-side: @include opposite(slice($pos, 1));
+    }@else{           // start position
+        $corner-or-side: $pos;
+    }
+  }@else{
+    $corner-or-side: $pos;
+  }
+  @return $corner-or-side;
+}
+
+@mixin get-stop-color($color-stop){
+  @if is-list($color-stop){
+      @return nth($color-stop, 0 + 1)
+  }
+  @return $color-stop;
+}
+
+
+$transition-prop-test: 'transform|perspective|transform-origin';
+@mixin transition-prop-prefix($props, $prefix){
+  $type: type-of($props);
+  @if $type == 'valueslist'{
+    @mixin res();
+    @for $prop of $props{
+      push($res, @include transition-prop-prefix($prop, $prefix));
+    }
+    @return $res;
+  }
+  @if $type == 'values'{
+    $props: t($props);
+  }
+  @return @include if(match($transition-prop-test, $props), $prefix + $props, $props);
+}

@@ -1,0 +1,20 @@
+{
+  "name": "mass2scss",
+  "description": "Convert mass to scss by using mcss2scss converter",
+  "version": "0.1.0",
+  "author": "Sensen <rainforest92@126.com>",
+  "main": "./dist/index.js",
+  "repository": "git://github.com/rainfore/mass2scss.git",
+  "bugs": {
+    "url": "http://github.com/rainfore/mass2scss/issues"
+  },
+  "license": "MIT",
+  "keywords": ["mcss", "mass", "scss", "converter"],
+  "tags": ["mcss", "mass", "scss", "converter"],
+  "dependencies": {},
+  "devDependencies": {
+    "mass": "^0.1.0",
+    "mcss2scss": "git://github.com/rainfore/mcss2scss.git",
+    "gulp": "^3.9.0"
+  }
+}
